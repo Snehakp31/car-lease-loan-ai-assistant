@@ -68,3 +68,38 @@ Setup **Frontend, Backend, and OCR service**
 - Frontend is fully connected to backend APIs and is **working correctly**
 
 ## 📌 Milestone 2 – Completed ✅
+
+---
+## 🚀 Milestone 3 – Frontend Development (ReactJS)
+
+### ✅ Task 1: Create the ReactJS Application Structure
+
+In this milestone, the frontend of the **Car Lease / Loan AI Assistant** was migrated from a static HTML/CSS/JavaScript implementation to a modern **ReactJS** application.
+
+**Work completed:**
+- Created a ReactJS project using `create-react-app`
+- Structured the application using reusable React components
+- Implemented a **Login Screen** component
+- Implemented a **Document Upload Screen** component
+- Used React Hooks (`useState`) for state management
+- Designed a clean and professional UI
+- Ensured smooth user interaction without page reloads
+
+The React application runs on:http://localhost:3000
+
+ 
+---
+
+### ✅ Task 2: Basic Navigation Between Login and Upload Screens
+
+Basic navigation between the login screen and document upload screen was implemented using React state management.
+
+**Navigation flow:**
+- User is initially presented with the **Login Screen**
+- After successful login, the user is redirected to the **Upload Screen**
+- Navigation is handled using conditional rendering in `App.js`
+- No external routing libraries were required
+
+ ## 📌 Milestone 3 – Completed ✅
+
+
