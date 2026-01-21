@@ -1,0 +1,17 @@
+VEHICLE LEASE AGREEMENT
+This Lease Agreement is made between ABC Leasing Pvt Ltd and the Lessee.
+Vehicle Details:
+Vehicle Identification Number (VIN): 1HGCM82633A004352
+Make: Toyota
+Model: Camry
+Trim: XLE
+Model Year: 2021
+Body Type: Sedan
+Financial Terms:
+Annual Percentage Rate (APR): 8.9%
+Monthly Payment: 18,750
+Lease Term: 48 months
+Additional Terms:
+The lessee agrees to make all payments on time as per the lease duration. Failure to comply may
+result in penalties as defined by the agreement.
+Signed on this day by both parties.

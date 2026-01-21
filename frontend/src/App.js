@@ -1,32 +1,33 @@
 import React, { useState } from "react";
 import Login from "./components/Login";
 import "./App.css";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 function App() {
-  // 🔐 Login state
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
-  // 📄 Existing states
   const [file, setFile] = useState(null);
   const [fileName, setFileName] = useState("Choose PDF File");
   const [extractedText, setExtractedText] = useState("");
-  const [statusMsg, setStatusMsg] = useState("");
-  const [statusType, setStatusType] = useState("");
+  const [hiddenFees, setHiddenFees] = useState([]);
+  const [fairnessScore, setFairnessScore] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [userName, setUserName] = useState("Your Name");
 
   const charCount = extractedText.length;
 
-  // 🚀 Upload & Extract
+  /* ================= UPLOAD + OCR ================= */
   const uploadAndExtract = async () => {
     if (!file) {
-      setStatusMsg("Please select a PDF file first");
-      setStatusType("error");
+      toast.error("Please select a PDF file first");
       return;
     }
 
     setLoading(true);
     setExtractedText("");
-    setStatusMsg("");
+    setHiddenFees([]);
+    setFairnessScore(null);
 
     const formData = new FormData();
     formData.append("file", file);
@@ -46,51 +47,99 @@ function App() {
       const textData = await textRes.json();
 
       setExtractedText(textData.extracted_text || "No text found.");
-      setStatusMsg("✓ Text extracted successfully");
-      setStatusType("success");
+      setFairnessScore(textData.fairness_score || null);
+      setHiddenFees(textData.hidden_fees || []);
+
+      toast.success("Text extracted successfully!");
     } catch (err) {
-      setStatusMsg("Error extracting text");
-      setStatusType("error");
+      toast.error("Error extracting text");
     } finally {
       setLoading(false);
     }
   };
 
-  const copyText = async () => {
-    if (!extractedText) return;
-    await navigator.clipboard.writeText(extractedText);
-    setStatusMsg("✓ Copied to clipboard");
-    setStatusType("success");
+  /* ================= COUNTER EMAIL ================= */
+  const generateCounterEmail = () => {
+    if (!fairnessScore) {
+      toast.error("Please analyze a contract first");
+      return;
+    }
+
+    const subject = encodeURIComponent(
+      "Request for Revision of Loan Terms – Contract Review"
+    );
+
+    const concerns =
+      hiddenFees.length > 0
+        ? hiddenFees
+            .map(
+              (r, i) =>
+                `${i + 1}. ${r.type} (${r.risk} Risk): ${r.message}`
+            )
+            .join("\n")
+        : "No major risky clauses detected.";
+
+    const body = encodeURIComponent(`
+Dear Sir/Madam,
+
+I have reviewed the loan agreement carefully.
+
+Summary:
+- Fairness Score: ${fairnessScore.fairness_score}
+- Rating: ${fairnessScore.rating}
+
+Concerns:
+${concerns}
+
+Kindly request clarification or revision.
+
+Regards,
+${userName}
+`);
+
+    window.open(
+      `https://mail.google.com/mail/?view=cm&fs=1&su=${subject}&body=${body}`,
+      "_blank"
+    );
+
+    toast.success("Counter-email generated!");
   };
 
-  const clearText = () => {
-    if (!window.confirm("Clear extracted text?")) return;
-    setExtractedText("");
-    setFile(null);
-    setFileName("Choose PDF File");
-    setStatusMsg("");
-  };
-
+  /* ================= LOGOUT ================= */
   const handleLogout = () => {
     setIsLoggedIn(false);
-    clearText();
+    setFile(null);
+    setExtractedText("");
+    setHiddenFees([]);
+    setFairnessScore(null);
   };
 
-  // 🔁 Login check
   if (!isLoggedIn) {
     return <Login onLogin={() => setIsLoggedIn(true)} />;
   }
 
   return (
     <div className="app">
+      <ToastContainer />
+
       <header className="app-header">
         <h1>CAR-LEASE-LOAN-AI-ASSISTANT</h1>
-
-        
       </header>
 
+      {/* Username */}
+      <div className="username-container">
+        <input
+          type="text"
+          value={userName}
+          onChange={(e) => setUserName(e.target.value)}
+          placeholder="Your Name"
+          className="username-input"
+        />
+      </div>
+
+      {/* Upload */}
       <div className="card">
-        <h2>Upload Your PDF</h2>
+        <h2>Upload Contract PDF</h2>
 
         <input
           type="file"
@@ -114,44 +163,106 @@ function App() {
         >
           {loading ? "Processing..." : "Upload & Extract"}
         </button>
-
-        {statusMsg && (
-          <p className={`status ${statusType}`}>{statusMsg}</p>
-        )}
       </div>
 
-      <div className="card">
-        <div className="card-header">
-          <h2>Extracted Text</h2>
-          <div>
-            <button onClick={copyText} className="secondary-btn">
-              Copy
-            </button>
-            <button onClick={clearText} className="secondary-btn">
-              Clear
-            </button>
+      {/* ================= FAIRNESS SCORE (UPDATED) ================= */}
+      {fairnessScore && (
+        <div className="card fairness-card">
+          <h2>Fairness Score</h2>
+
+          <span
+            className={`rating-badge ${fairnessScore.rating.toLowerCase()}`}
+          >
+            {fairnessScore.rating}
+          </span>
+
+          <p className="score-number">
+            {fairnessScore.fairness_score} / 100
+          </p>
+          
+          {/* Contract Details */}
+          <h4>Contract Details</h4>
+          <ul>
+            <li>📉 Interest Rate: {fairnessScore.details.interest_rate}%</li>
+            <li>💰 Loan Amount: ₹{fairnessScore.details.loan_amount}</li>
+            <li>
+              📆 Tenure: {fairnessScore.details.tenure_months} months
+            </li>
+          </ul>
+          {/* Risk Summary */}
+          {hiddenFees.length > 0 && (
+            <div className="risk-summary">
+              <p>
+                This contract contains{" "}
+                <strong>{hiddenFees.length} risky clauses</strong>.
+              </p>
+            </div>
+          )}
+
+
+          {/* Risk Section */}
+          {hiddenFees.length > 0 && (
+            <div className="risk-section">
+              <h3 className="risk-title">
+                ⚠️ Hidden / Risky Clauses Detected
+              </h3>
+
+              {hiddenFees.map((fee, index) => (
+                <div
+                  key={index}
+                  className={`risk-card ${fee.risk.toLowerCase()}`}
+                >
+                  <div className="risk-header">
+                    <span className="risk-type">{fee.type}</span>
+                    <span
+                      className={`risk-badge ${fee.risk.toLowerCase()}`}
+                    >
+                      {fee.risk} Risk
+                    </span>
+                  </div>
+                  <p className="risk-message">{fee.message}</p>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Score Bar */}
+          <div className="score-bar">
+            <div
+              className="score-fill"
+              style={{
+                width: `${fairnessScore.fairness_score}%`,
+              }}
+            />
           </div>
+
+          
+
+          
+          {/* Counter Email */}
+          <button
+            className="primary-btn email-btn"
+            onClick={generateCounterEmail}
+          >
+            ✉️ Generate Counter-Email
+          </button>
         </div>
+      )}
 
-        <textarea
-          value={extractedText}
-          readOnly
-          placeholder="Extracted text will appear here..."
-          rows="16"
-        />
-
+      {/* Extracted Text */}
+      <div className="card">
+        <h2>Extracted Text</h2>
+        <textarea value={extractedText} readOnly rows="14" />
         <p className="char-count">{charCount} characters</p>
       </div>
+
       <div className="logout-container">
-  <button className="logout-btn" onClick={handleLogout}>
-    Logout
-  </button>
-</div>
+        <button className="logout-btn" onClick={handleLogout}>
+          Logout
+        </button>
+      </div>
 
-
-      <footer className="footer">
-        OCR powered by pdfplumber
-      </footer>
+      <footer className="footer">OCR powered by pdfplumber</footer>
     </div>
   );
 }
