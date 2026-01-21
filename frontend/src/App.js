@@ -183,8 +183,8 @@ ${userName}
           {/* Contract Details */}
           <h4>Contract Details</h4>
           <ul>
-            <li>📉 Interest Rate: {fairnessScore.details.interest_rate}%</li>
-            <li>💰 Loan Amount: ₹{fairnessScore.details.loan_amount}</li>
+            <li> Interest Rate: {fairnessScore.details.interest_rate}%</li>
+            <li> Loan Amount: ₹{fairnessScore.details.loan_amount}</li>
             <li>
               📆 Tenure: {fairnessScore.details.tenure_months} months
             </li>
@@ -239,7 +239,7 @@ ${userName}
           
 
           
-          {/* Counter Email */}
+          {/* Counter Email for generating email  */}
           <button
             className="primary-btn email-btn"
             onClick={generateCounterEmail}
